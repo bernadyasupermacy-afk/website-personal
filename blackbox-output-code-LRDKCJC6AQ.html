@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Letter</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 25%, #ff9ff3 50%, #f368e0 75%, #ff6b9d 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Audio Controls - Fixed Position */
+        .audio-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255, 107, 157, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .audio-controls:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .audio-controls audio {
+            display: none;
+        }
+
+        .audio-btn {
+            background: linear-gradient(145deg, #ff6b9d, #ff4757);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .audio-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6);
+        }
+
+        .audio-btn.playing {
+            background: linear-gradient(145deg, #ff9ff3, #f368e0);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .volume-control {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255, 107, 157, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .volume-control.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .volume-control input[type="range"] {
+            width: 100px;
+            margin: 5px 10px;
+            accent-color: #ff6b9d;
+        }
+
+        /* Dekorasi Bunga/Kelopak */
+        .flower {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.7;
+            user-select: none;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .flower1 { top: 10%; left: 10%; animation-delay: 0s; }
+        .flower2 { top: 20%; right: 15%; animation-delay: 3s; }
+        .flower3 { bottom: 20%; left: 20%; animation-delay: 6s; }
+        .flower4 { top: 60%; right: 25%; animation-delay: 9s; }
+        .flower5 { bottom: 10%; left: 60%; animation-delay: 12s; }
+        .flower6 { top: 40%; left: 70%; animation-delay: 15s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            padding-bottom: 100px; /* Space untuk audio controls */
+        }
+
+        /* Envelope */
+        .envelope {
+            width: 300px;
+            height: 200px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            margin-bottom: 30px;
+        }
+
+        .envelope:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .envelope.flap-open .flap {
+            transform: rotateX(-180deg);
+        }
+
+        .envelope-body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #ff4757, #ff3838);
+            border-radius: 15px;
+            position: relative;
+            box-shadow: 
+                0 20px 40px rgba(255, 71, 87, 0.4),
+                inset 0 -5px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(145deg, #ff6b81, #ff4757);
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform-origin: top;
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: inset 0 -3px 6px rgba(255, 255, 255, 0.2);
+        }
+
+        .love-heart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: white;
+            font-family: 'Dancing Script', cursive;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            z-index: 20;
+        }
+
+        /* Surat dan Polaroid */
+        .letter-container {
+            display: none;
+            flex-direction: row;
+            gap: 40px;
+            align-items: flex-start;
+            max-width: 900px;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .envelope.open + .letter-container {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Surat */
+        .letter {
+            width: 350px;
+            height: 450px;
+            background: linear-gradient(145deg, #fff8e1, #f9e4b7);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.2),
+                inset 0 2px 5px rgba(255,255,255,0.8);
+            position: relative;
+            transform: rotate(-2deg);
+        }
+
+        .letter::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #ff6b9d;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transform: rotate(45deg) scale(0.7);
+        }
+
+        .letter-content {
+            height: 100%;
+            font-family: 'Dancing Script', cursive;
+            font-size: 22px;
+            line-height: 1.6;
+            color: #4a4a4a;
+            overflow-y: auto;
+            padding-right: 10px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .letter-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .letter-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .letter-content::-webkit-scrollbar-thumb {
+            background: #ff6b9d;
+            border-radius: 2px;
+        }
+
+        /* Polaroid */
+        .polaroid {
+            width: 300px;
+            height: 350px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            position: relative;
+            transform: rotate(3deg);
+        }
+
+        .polaroid-frame {
+            height: 30px;
+            background: linear-gradient(145deg, #e0e0e0, #f5f5f5);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+        }
+
+        .polaroid-frame::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: #ddd;
+            border-radius: 2px;
+        }
+
+        .polaroid-image {
+            width: 180px;
+            height: 200px;
+            background: url('https://images.unsplash.com/photo-1516589178581-6cd7838b8c47?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80') center/cover;
+            margin: 15px auto 0;
+            border-radius: 4px;
+            border: 8px solid white;
+            position: relative;
+        }
+
+        .polaroid-text {
+            padding: 10px 15px 15px;
+            text-align: center;
+            font-family: 'Dancing Script', cursive;
+            font-size: 18px;
+            color: #333;
+            user-select: none;
+        }
+
+        @media (max-width: 768px) {
+            .letter-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .letter, .polaroid {
+                width: 300px;
+                transform: none;
+            }
+            
+            .envelope {
+                width: 250px;
+                height: 160px;
+            }
+            
+            .love-heart {
+                font-size: 36px;
+            }
+
+            .audio-controls {
+                bottom: 15px;
+                right: 15px;
+                padding: 12px;
+            }
+
+            .audio-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bunga-bunga background -->
+    <div class="flower flower1">🌸</div>
+    <div class="flower flower2">🌺</div>
+    <div class="flower flower3">🌷</div>
+    <div class="flower flower4">🌹</div>
+    <div class="flower flower5">🌺</div>
+    <div class="flower flower6">🌸</div>
+
+    <div class="container">
+        <div class="envelope" onclick="toggleEnvelope()">
+            <div class="envelope-body">
+                <div class="flap"></div>
+                <div class="love-heart">💕</div>
+            </div>
+        </div>
+        
+        <div class="letter-container">
+            <div class="letter">
+                <div class="letter-content" id="letterContent">
+                    Hai Cee..,<br><br>
+                    
+                    Aku cuma mau ngucapin makasih banyak selama ini udah mau jadi temen aku, setelah berbagai kejadian kamu masih mau akrab sama aku.<br>
+			aku juga mau minta maaf kalau aku punya banyak salah ke kamu ya. Semoga kamu Oneshoot ITS ditunggu jj nya okee!?<br>
+			Jujur aja aku kagum sama kamu, Udah mah pinter, cantik, berbakat #asik. Semoga kamu dapet pacar yang tipe mu itu yaa, semoga bukan yang redflag deh biar ga nangis mulu kan aokwowkowk. Sorry ya aku ga sempet ngasi bunga ke kamu karena satu dan lain hal. Aku doain kamu sukses selalu.<br>
+                    
+                    Jesus always bless u💕<br><br>
+                    
+                    from ur bro: <br>
+                    [Arka]
+                </div>
+            </div>
+            
+            <div class="polaroid">
+                <div class="polaroid-frame"></div>
+                <div class="polaroid-image" id="polaroidImage">
+                    <img src="ucapan/Cece.jpg" style="width: 100%; height: 150%; object-fit: cover; border-radius: 4px;">
+                </div>
+                <div class="polaroid-text" id="polaroidText">💕</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Controls - Fixed Position & Stylish -->
+    <div class="audio-controls">
+        <button class="audio-btn playing" id="audioBtn" onclick="toggleAudio()" title="Play/Pause Music">⏸️</button>
+        <div class="volume-control" id="volumeControl">
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.3">
+        </div>
+        <audio id="backgroundMusic" loop preload="auto" autoplay muted>
+            <source src="ucapan/Magnolia.mpeg" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <script>
+        let isOpen = false;
+        let isPlaying = true;
+        let audio = document.getElementById('backgroundMusic');
+        let audioBtn = document.getElementById('audioBtn');
+        let volumeControl = document.getElementById('volumeControl');
+        let volumeSlider = document.getElementById('volumeSlider');
+
+        // Set volume awal rendah untuk autoplay
+        audio.volume = 0.3;
+        volumeSlider.value = 0.3;
+
+        // Auto-unmute setelah user interaction pertama
+        function enableAudio() {
+            audio.muted = false;
+            audio.play().then(() => {
+                console.log('🎵 Musik autoplay berhasil!');
+            }).catch(e => {
+                console.log('Autoplay gagal:', e);
+            });
+        }
+
+        // Toggle audio
+        function toggleAudio() {
+            if (isPlaying) {
+                audio.pause();
+                audioBtn.textContent = '🎵';
+                audioBtn.classList.remove('playing');
+                isPlaying = false;
+            } else {
+                audio.play().catch(e => {
+                    console.log('Play manual gagal:', e);
+                });
+                audioBtn.textContent = '⏸️';
+                audioBtn.classList.add('playing');
+                isPlaying = true;
+            }
+        }
+
+        // Volume control
+        volumeSlider.addEventListener('input', function() {
+            audio.volume = this.value;
+        });
+
+        // Show volume control on hover
+        audioBtn.addEventListener('mouseenter', function() {
+            volumeControl.classList.add('show');
+        });
+
+        audioBtn.parentElement.addEventListener('mouseleave', function() {
+            volumeControl.classList.remove('show');
+        });
+
+        // Audio events
+        audio.addEventListener('play', function() {
+            isPlaying = true;
+            audioBtn.textContent = '⏸️';
+            audioBtn.classList.add('playing');
+        });
+
+        audio.addEventListener('pause', function() {
+            isPlaying = false;
+            audioBtn.textContent = '🎵';
+            audioBtn.classList.remove('playing');
+        });
+
+        // Enable audio on first user interaction
+        document.addEventListener('click', enableAudio, { once: true });
+        document.addEventListener('touchstart', enableAudio, { once: true });
+        document.addEventListener('keydown', enableAudio, { once: true });
+
+        // Fallback: coba enable audio setelah 1 detik
+        setTimeout(() => {
+            if (audio.muted) {
+                enableAudio();
+            }
+        }, 1000);
+
+        // Envelope toggle
+        function toggleEnvelope() {
+            const envelope = document.querySelector('.envelope');
+            const letterContainer = document.querySelector('.letter-container');
+            
+            if (!isOpen) {
+                envelope.classList.add('flap-open', 'open');
+                setTimeout(() => {
+                    letterContainer.style.display = 'flex';
+                }, 600);
+                isOpen = true;
+            }
+        }
+
+        // Prevent context menu on long press (mobile)
+        document.addEventListener('contextmenu', e => e.preventDefault());
+    </script>
+</body>
+</html>
